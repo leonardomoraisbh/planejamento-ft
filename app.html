@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planejamento FT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root {
+      --sidebar-bg: #1e3a5f;
+      --sidebar-hover: #2d6a9f;
+      --accent: #f59e0b;
+      --body-bg: #f0f4f8;
+    }
+    body { background: var(--body-bg); font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+    /* Sidebar */
+    #sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh; width: 240px;
+      background: var(--sidebar-bg); display: flex; flex-direction: column;
+      z-index: 100; transition: width .3s;
+    }
+    .sidebar-logo {
+      padding: 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .sidebar-logo .icon {
+      width: 38px; height: 38px; background: var(--accent);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .sidebar-logo .icon i { color: #fff; font-size: 1.1rem; }
+    .sidebar-logo .brand { color: #fff; font-weight: 700; font-size: .95rem; line-height: 1.2; }
+    .sidebar-logo .brand small { display: block; color: rgba(255,255,255,.5); font-size: .7rem; font-weight: 400; }
+
+    .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+    .nav-section-title {
+      color: rgba(255,255,255,.4); font-size: .65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: .75rem 1.25rem .25rem;
+    }
+    .nav-item-link {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem 1.25rem; color: rgba(255,255,255,.75);
+      text-decoration: none; font-size: .875rem; border-radius: 0;
+      transition: all .2s; cursor: pointer; border: none; background: none; width: 100%;
+    }
+    .nav-item-link:hover, .nav-item-link.active {
+      background: rgba(255,255,255,.1); color: #fff;
+    }
+    .nav-item-link.active { border-left: 3px solid var(--accent); }
+    .nav-item-link i { font-size: 1rem; width: 20px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .user-info { display: flex; align-items: center; gap: .6rem; }
+    .user-avatar {
+      width: 34px; height: 34px; background: var(--accent);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+    .user-avatar i { color: #fff; font-size: .9rem; }
+    .user-name { color: #fff; font-size: .8rem; font-weight: 600; }
+    .user-chapa { color: rgba(255,255,255,.5); font-size: .7rem; }
+    .btn-logout {
+      background: none; border: none; color: rgba(255,255,255,.5);
+      padding: .25rem; cursor: pointer; transition: color .2s;
+    }
+    .btn-logout:hover { color: #fff; }
+
+    /* Main */
+    #main { margin-left: 240px; min-height: 100vh; }
+    .topbar {
+      background: #fff; padding: 1rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar h5 { margin: 0; font-weight: 700; color: #1e3a5f; font-size: 1rem; }
+    .content { padding: 1.5rem; }
+
+    /* Cards */
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 1.25rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .stat-card .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: #1e3a5f; }
+    .stat-card .stat-label { font-size: .8rem; color: #6b7280; }
+
+    /* Upload area */
+    .upload-zone {
+      border: 2px dashed #cbd5e1; border-radius: 12px;
+      padding: 2.5rem; text-align: center;
+      transition: all .2s; cursor: pointer; background: #f8fafc;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #1e3a5f; background: #eff6ff;
+    }
+    .upload-zone i { font-size: 2.5rem; color: #94a3b8; }
+    .upload-zone.dragover i { color: #1e3a5f; }
+
+    /* Table */
+    .preview-table-wrapper { overflow-x: auto; border-radius: 10px; }
+    .preview-table { font-size: .8rem; }
+    .preview-table thead th {
+      background: #1e3a5f; color: #fff;
+      font-weight: 600; white-space: nowrap; padding: .6rem .75rem;
+    }
+    .preview-table tbody tr:hover { background: #f0f4ff; }
+    .badge-erro { background: #fee2e2; color: #dc2626; font-size: .7rem; }
+    .badge-ok { background: #dcfce7; color: #16a34a; font-size: .7rem; }
+
+    /* Page sections */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* Validation */
+    .validation-item { font-size: .85rem; padding: .35rem 0; border-bottom: 1px solid #f1f5f9; }
+    .validation-item:last-child { border-bottom: none; }
+
+    @media (max-width: 768px) {
+      #sidebar { width: 60px; }
+      .sidebar-logo .brand, .nav-item-link span, .nav-section-title,
+      .user-name, .user-chapa { display: none; }
+      #main { margin-left: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon"><i class="bi bi-clipboard2-check"></i></div>
+    <div class="brand">Planejamento FT<small>Sistema de Planejamento</small></div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-title">Principal</div>
+    <button class="nav-item-link active" onclick="showPage('dashboard')">
+      <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
+    </button>
+
+    <div class="nav-section-title">Planejamento</div>
+    <button class="nav-item-link" onclick="showPage('criar-planejamento')">
+      <i class="bi bi-file-earmark-arrow-up"></i><span>Criar Planejamento</span>
+    </button>
+    <button class="nav-item-link" onclick="showPage('listar-planejamento')">
+      <i class="bi bi-table"></i><span>Ver Planejamentos</span>
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar"><i class="bi bi-person"></i></div>
+      <div class="flex-grow-1">
+        <div class="user-name" id="sidebarNome">—</div>
+        <div class="user-chapa" id="sidebarChapa">—</div>
+      </div>
+      <button class="btn-logout" onclick="logout()" title="Sair">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Main content -->
+<div id="main">
+  <div class="topbar">
+    <h5 id="topbarTitle"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</h5>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge text-bg-secondary" id="topbarObras">0 obras</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page-section active">
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon" style="background:#eff6ff">
+                <i class="bi bi-building" style="color:#1e3a5f;font-size:1.2rem"></i>
+              </div>
+              <div>
+                <div class="stat-value" id="cardObras">—</div>
+                <div class="stat-label">Obras com Acesso</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <div class="stat-card">
+            <div class="d-flex align-items-center gap-3">
+              <div class="stat-icon" style="background:#fefce8">
+                <i class="bi bi-clipboard2-data" style="color:#d97706;font-size:1.2rem"></i>
+              </div>
+              <div>
+                <div class="stat-value" id="cardPlanejamentos">—</div>
+                <div class="stat-label">Itens no Planejamento</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h6 class="fw-bold mb-3" style="color:#1e3a5f"><i class="bi bi-building me-2"></i>Obras com Acesso</h6>
+        <div id="obrasList" class="d-flex flex-wrap gap-2">
+          <span class="text-muted" style="font-size:.85rem">Carregando...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRIAR PLANEJAMENTO -->
+    <div id="page-criar-planejamento" class="page-section">
+      <div class="row g-3">
+
+        <!-- Passo 1: Download template -->
+        <div class="col-12">
+          <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <h6 class="fw-bold mb-1" style="color:#1e3a5f">
+                  <span class="badge rounded-pill me-2" style="background:#1e3a5f">1</span>
+                  Baixar Template
+                </h6>
+                <p class="text-muted mb-0" style="font-size:.85rem">
+                  Preencha a planilha modelo e depois faça o upload abaixo.
+                </p>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" onclick="downloadTemplate()" style="border-color:#1e3a5f;color:#1e3a5f">
+                <i class="bi bi-download me-1"></i>Baixar Template (.xlsx)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passo 2: Upload -->
+        <div class="col-12">
+          <div class="stat-card">
+            <h6 class="fw-bold mb-3" style="color:#1e3a5f">
+              <span class="badge rounded-pill me-2" style="background:#1e3a5f">2</span>
+              Upload da Planilha
+            </h6>
+
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+              <i class="bi bi-cloud-arrow-up d-block mb-2"></i>
+              <p class="mb-1 fw-semibold" style="color:#374151">Clique ou arraste o arquivo aqui</p>
+              <p class="mb-0 text-muted" style="font-size:.8rem">Somente arquivos .xlsx</p>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx" class="d-none" />
+
+            <div id="fileInfo" class="d-none mt-3 p-3 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-excel text-success fs-5"></i>
+                <div>
+                  <div class="fw-semibold" style="font-size:.875rem;color:#15803d" id="fileName"></div>
+                  <div class="text-muted" style="font-size:.75rem" id="fileRows"></div>
+                </div>
+                <button class="btn btn-sm ms-auto" style="color:#dc2626" onclick="clearFile()">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passo 3: Validacao -->
+        <div class="col-12" id="validationSection" style="display:none">
+          <div class="stat-card">
+            <h6 class="fw-bold mb-3" style="color:#1e3a5f">
+              <span class="badge rounded-pill me-2" style="background:#1e3a5f">3</span>
+              Resultado da Validacao
+            </h6>
+            <div id="validationResults"></div>
+          </div>
+        </div>
+
+        <!-- Passo 4: Preview e importar -->
+        <div class="col-12" id="previewSection" style="display:none">
+          <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+              <h6 class="fw-bold mb-0" style="color:#1e3a5f">
+                <span class="badge rounded-pill me-2" style="background:#1e3a5f">4</span>
+                Preview dos Dados
+              </h6>
+              <button class="btn btn-success" id="btnImportar" onclick="importarDados()" disabled>
+                <i class="bi bi-database-add me-1"></i>Importar para o Banco
+              </button>
+            </div>
+            <p class="text-muted mb-3" style="font-size:.8rem" id="previewInfo"></p>
+            <div class="preview-table-wrapper">
+              <table class="table table-sm preview-table mb-0" id="previewTable">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VER PLANEJAMENTOS -->
+    <div id="page-listar-planejamento" class="page-section">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-bold mb-0" style="color:#1e3a5f"><i class="bi bi-table me-2"></i>Planejamentos Cadastrados</h6>
+          <div class="d-flex gap-2">
+            <select id="filtroObra" class="form-select form-select-sm" style="width:auto" onchange="carregarPlanejamentos()">
+              <option value="">Todas as obras</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" onclick="carregarPlanejamentos()">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+        </div>
+        <div class="preview-table-wrapper">
+          <table class="table table-sm preview-table mb-0" id="listaTable">
+            <thead>
+              <tr>
+                <th>#</th><th>Cronograma</th><th>Equipe</th><th>Atividades</th>
+                <th>Semana</th><th>Encarregado</th><th>Quant.</th><th>Unid</th>
+                <th>Inicio</th><th>Termino</th><th>Obra</th>
+              </tr>
+            </thead>
+            <tbody id="listaTbody">
+              <tr><td colspan="11" class="text-center text-muted py-4">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast de feedback -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body fw-semibold" id="toastMsg"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const supabase = createClient(
+    'https://eyocvshcppjhaccvubzp.supabase.co',
+    'sb_publishable_h4w2uJeHHSTUxqzBij97qQ_Md9dRdpB'
+  );
+
+  // ── Estado global ──────────────────────────────────────────
+  let currentUser = null;
+  let userProfile = null;
+  let userObras = [];
+  let parsedRows = [];
+  let validRows = [];
+
+  const COLUNAS_OBRIGATORIAS = [
+    'ID_CRONOGRAMA','ID_PORTAL','ID_EQUIPE','DESENHO','ATIVIDADES',
+    'SEMANA','COMODITIES','SUPERVISOR','ENCARREGADO','UNID',
+    'QUANT_TOTAL','DATA_INICIO','DATA_TERMINO','Obra'
+  ];
+
+  // ── Auth guard ─────────────────────────────────────────────
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'index.html'; }
+  else { currentUser = session.user; init(); }
+
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') window.location.href = 'index.html';
+  });
+
+  // ── Inicializacao ──────────────────────────────────────────
+  async function init() {
+    await carregarPerfil();
+    await carregarObras();
+    await carregarEstatisticas();
+    setupUpload();
+  }
+
+  async function carregarPerfil() {
+    const { data } = await supabase
+      .from('usuarios')
+      .select('chapa, nome, role')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (data) {
+      userProfile = data;
+      document.getElementById('sidebarNome').textContent = data.nome;
+      document.getElementById('sidebarChapa').textContent = 'Chapa: ' + data.chapa;
+    }
+  }
+
+  async function carregarObras() {
+    const { data } = await supabase
+      .from('usuario_obra')
+      .select('obra')
+      .eq('id_usuario', currentUser.id);
+
+    userObras = (data || []).map(r => r.obra);
+    document.getElementById('topbarObras').textContent = userObras.length + ' obra(s)';
+    document.getElementById('cardObras').textContent = userObras.length;
+
+    // Badges no dashboard
+    const obrasList = document.getElementById('obrasList');
+    if (userObras.length === 0) {
+      obrasList.innerHTML = '<span class="text-muted" style="font-size:.85rem">Nenhuma obra vinculada.</span>';
+    } else {
+      obrasList.innerHTML = userObras.map(o =>
+        `<span class="badge rounded-pill" style="background:#1e3a5f;font-size:.8rem">${o}</span>`
+      ).join('');
+    }
+
+    // Filtro no listar
+    const filtroObra = document.getElementById('filtroObra');
+    userObras.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o; opt.textContent = o;
+      filtroObra.appendChild(opt);
+    });
+  }
+
+  async function carregarEstatisticas() {
+    if (userObras.length === 0) { document.getElementById('cardPlanejamentos').textContent = '0'; return; }
+    const { count } = await supabase
+      .from('Planejamento_FT')
+      .select('ITEM', { count: 'exact', head: true })
+      .in('Obra', userObras);
+    document.getElementById('cardPlanejamentos').textContent = count ?? 0;
+  }
+
+  // ── Navegacao ──────────────────────────────────────────────
+  window.showPage = function(page) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item-link').forEach(b => b.classList.remove('active'));
+
+    document.getElementById('page-' + page).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    const titles = {
+      'dashboard': '<i class="bi bi-grid-1x2 me-2"></i>Dashboard',
+      'criar-planejamento': '<i class="bi bi-file-earmark-arrow-up me-2"></i>Criar Planejamento',
+      'listar-planejamento': '<i class="bi bi-table me-2"></i>Ver Planejamentos'
+    };
+    document.getElementById('topbarTitle').innerHTML = titles[page] || page;
+
+    if (page === 'listar-planejamento') carregarPlanejamentos();
+  };
+
+  // ── Logout ─────────────────────────────────────────────────
+  window.logout = async function() {
+    await supabase.auth.signOut();
+    window.location.href = 'index.html';
+  };
+
+  // ── Template Excel ─────────────────────────────────────────
+  window.downloadTemplate = function() {
+    const wb = XLSX.utils.book_new();
+    const headers = COLUNAS_OBRIGATORIAS;
+    const exemplo = [
+      'CRON-001','PRT-001','Supervisao','DWG-001',
+      'Descricao da atividade',1,'Civil','Nome Supervisor',
+      'Nome Encarregado','M2',100.00,'2028-01-24','2028-01-30',
+      userObras[0] || '345.000'
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers, exemplo]);
+
+    // Larguras de coluna
+    ws['!cols'] = headers.map((h, i) => ({
+      wch: ['ATIVIDADES','SUPERVISOR','ENCARREGADO'].includes(h) ? 30 : 18
+    }));
+
+    // Estilo do cabecalho (sem suporte total no xlsx basico, mas funciona em alguns leitores)
+    XLSX.utils.book_append_sheet(wb, ws, 'Planejamento');
+    XLSX.writeFile(wb, 'template_planejamento_FT.xlsx');
+    showToast('Template baixado com sucesso!', 'success');
+  };
+
+  // ── Upload e parsing ───────────────────────────────────────
+  function setupUpload() {
+    const zone = document.getElementById('uploadZone');
+    const input = document.getElementById('fileInput');
+
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) processarArquivo(file);
+    });
+
+    input.addEventListener('change', e => {
+      if (e.target.files[0]) processarArquivo(e.target.files[0]);
+    });
+  }
+
+  async function processarArquivo(file) {
+    if (!file.name.endsWith('.xlsx')) {
+      showToast('Somente arquivos .xlsx sao aceitos.', 'danger');
+      return;
+    }
+
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: 'yyyy-mm-dd' });
+
+    parsedRows = rows;
+
+    document.getElementById('fileInfo').classList.remove('d-none');
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileRows').textContent = rows.length + ' linha(s) encontrada(s)';
+    document.getElementById('uploadZone').style.display = 'none';
+
+    validarDados(rows);
+  }
+
+  window.clearFile = function() {
+    parsedRows = []; validRows = [];
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInfo').classList.add('d-none');
+    document.getElementById('uploadZone').style.display = '';
+    document.getElementById('validationSection').style.display = 'none';
+    document.getElementById('previewSection').style.display = 'none';
+  };
+
+  // ── Validacao ──────────────────────────────────────────────
+  function validarDados(rows) {
+    const erros = [];
+    const avisos = [];
+    validRows = [];
+
+    if (rows.length === 0) {
+      erros.push('A planilha esta vazia.');
+      renderValidation(erros, avisos); return;
+    }
+
+    // Verifica colunas
+    const colsPresentes = Object.keys(rows[0]);
+    const colsFaltando = COLUNAS_OBRIGATORIAS.filter(c => !colsPresentes.includes(c));
+    if (colsFaltando.length > 0) {
+      erros.push('Colunas ausentes na planilha: ' + colsFaltando.join(', '));
+      renderValidation(erros, avisos); return;
+    }
+
+    // Valida cada linha
+    rows.forEach((row, i) => {
+      const linha = i + 2;
+      let linhaOk = true;
+
+      // Campos obrigatorios
+      ['ID_CRONOGRAMA','ID_EQUIPE','ATIVIDADES','SEMANA','Obra'].forEach(campo => {
+        if (!row[campo] || row[campo].toString().trim() === '') {
+          erros.push(`Linha ${linha}: campo "${campo}" e obrigatorio.`);
+          linhaOk = false;
+        }
+      });
+
+      // Obra valida para o usuario
+      if (row['Obra'] && !userObras.includes(row['Obra'].toString().trim())) {
+        erros.push(`Linha ${linha}: obra "${row['Obra']}" nao esta vinculada ao seu usuario.`);
+        linhaOk = false;
+      }
+
+      // SEMANA deve ser inteiro
+      if (row['SEMANA'] && isNaN(parseInt(row['SEMANA']))) {
+        erros.push(`Linha ${linha}: SEMANA deve ser um numero inteiro.`);
+        linhaOk = false;
+      }
+
+      // QUANT_TOTAL deve ser numerico
+      if (row['QUANT_TOTAL'] && isNaN(parseFloat(row['QUANT_TOTAL']))) {
+        erros.push(`Linha ${linha}: QUANT_TOTAL deve ser um numero.`);
+        linhaOk = false;
+      }
+
+      // Datas validas
+      ['DATA_INICIO','DATA_TERMINO'].forEach(campo => {
+        if (row[campo] && isNaN(Date.parse(row[campo]))) {
+          erros.push(`Linha ${linha}: ${campo} com formato invalido. Use YYYY-MM-DD.`);
+          linhaOk = false;
+        }
+      });
+
+      if (linhaOk) validRows.push(row);
+    });
+
+    if (erros.length === 0)
+      avisos.push(`Todas as ${rows.length} linhas validadas com sucesso.`);
+    else if (validRows.length > 0)
+      avisos.push(`${validRows.length} linha(s) valida(s) de ${rows.length} total.`);
+
+    renderValidation(erros, avisos);
+    if (validRows.length > 0) renderPreview(validRows);
+  }
+
+  function renderValidation(erros, avisos) {
+    const section = document.getElementById('validationSection');
+    const container = document.getElementById('validationResults');
+    section.style.display = '';
+
+    let html = '';
+
+    if (erros.length > 0) {
+      html += `<div class="alert alert-danger py-2 mb-3">
+        <strong><i class="bi bi-exclamation-triangle me-1"></i>${erros.length} erro(s) encontrado(s)</strong>
+      </div>`;
+      html += '<div class="border rounded-3 p-2 mb-3">';
+      erros.forEach(e => {
+        html += `<div class="validation-item text-danger"><i class="bi bi-x-circle me-2"></i>${e}</div>`;
+      });
+      html += '</div>';
+    }
+
+    avisos.forEach(a => {
+      html += `<div class="alert alert-success py-2 mb-2">
+        <i class="bi bi-check-circle me-1"></i>${a}
+      </div>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  function renderPreview(rows) {
+    const section = document.getElementById('previewSection');
+    const info = document.getElementById('previewInfo');
+    const btnImportar = document.getElementById('btnImportar');
+    const thead = document.querySelector('#previewTable thead');
+    const tbody = document.querySelector('#previewTable tbody');
+
+    section.style.display = '';
+    info.textContent = `${rows.length} registro(s) prontos para importacao.`;
+    btnImportar.disabled = false;
+
+    const cols = COLUNAS_OBRIGATORIAS;
+    thead.innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+    tbody.innerHTML = rows.slice(0, 50).map(row =>
+      '<tr>' + cols.map(c => `<td>${row[c] ?? ''}</td>`).join('') + '</tr>'
+    ).join('');
+
+    if (rows.length > 50) {
+      tbody.innerHTML += `<tr><td colspan="${cols.length}" class="text-center text-muted py-2" style="font-size:.75rem">
+        ... e mais ${rows.length - 50} linha(s) nao exibidas no preview.
+      </td></tr>`;
+    }
+  }
+
+  // ── Importacao ─────────────────────────────────────────────
+  window.importarDados = async function() {
+    const btn = document.getElementById('btnImportar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
+
+    const payload = validRows.map(row => ({
+      ID_CRONOGRAMA: row['ID_CRONOGRAMA']?.toString().trim() || null,
+      ID_PORTAL:     row['ID_PORTAL']?.toString().trim() || null,
+      ID_EQUIPE:     row['ID_EQUIPE']?.toString().trim() || null,
+      DESENHO:       row['DESENHO']?.toString().trim() || null,
+      ATIVIDADES:    row['ATIVIDADES']?.toString().trim() || null,
+      SEMANA:        parseInt(row['SEMANA']) || null,
+      COMODITIES:    row['COMODITIES']?.toString().trim() || null,
+      SUPERVISOR:    row['SUPERVISOR']?.toString().trim() || null,
+      ENCARREGADO:   row['ENCARREGADO']?.toString().trim() || null,
+      UNID:          row['UNID']?.toString().trim() || null,
+      QUANT_TOTAL:   parseFloat(row['QUANT_TOTAL']) || null,
+      DATA_INICIO:   row['DATA_INICIO'] || null,
+      DATA_TERMINO:  row['DATA_TERMINO'] || null,
+      Obra:          row['Obra']?.toString().trim() || null,
+    }));
+
+    const { error } = await supabase.from('Planejamento_FT').insert(payload);
+
+    if (error) {
+      showToast('Erro ao importar: ' + error.message, 'danger');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-database-add me-1"></i>Importar para o Banco';
+    } else {
+      showToast(`${payload.length} registro(s) importados com sucesso!`, 'success');
+      clearFile();
+      await carregarEstatisticas();
+      btn.innerHTML = '<i class="bi bi-database-add me-1"></i>Importar para o Banco';
+    }
+  };
+
+  // ── Listar planejamentos ───────────────────────────────────
+  window.carregarPlanejamentos = async function() {
+    const tbody = document.getElementById('listaTbody');
+    const filtro = document.getElementById('filtroObra').value;
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-3">Carregando...</td></tr>';
+
+    let query = supabase
+      .from('Planejamento_FT')
+      .select('*')
+      .in('Obra', userObras)
+      .order('ITEM', { ascending: false })
+      .limit(200);
+
+    if (filtro) query = query.eq('Obra', filtro);
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td>${r.ITEM}</td>
+        <td>${r.ID_CRONOGRAMA ?? ''}</td>
+        <td>${r.ID_EQUIPE ?? ''}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.ATIVIDADES ?? ''}">${r.ATIVIDADES ?? ''}</td>
+        <td>${r.SEMANA ?? ''}</td>
+        <td>${r.ENCARREGADO ?? ''}</td>
+        <td>${r.QUANT_TOTAL ?? ''}</td>
+        <td>${r.UNID ?? ''}</td>
+        <td>${r.DATA_INICIO ?? ''}</td>
+        <td>${r.DATA_TERMINO ?? ''}</td>
+        <td><span class="badge rounded-pill" style="background:#1e3a5f;font-size:.7rem">${r.Obra ?? ''}</span></td>
+      </tr>
+    `).join('');
+  };
+
+  // ── Toast ──────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toast.className = `toast align-items-center text-white border-0 bg-${type}`;
+    toastMsg.textContent = msg;
+    new bootstrap.Toast(toast, { delay: 4000 }).show();
+  }
+
+  // Expoe funcoes necessarias ao HTML
+  window.downloadTemplate = window.downloadTemplate;
+  window.clearFile = window.clearFile;
+  window.importarDados = window.importarDados;
+  window.carregarPlanejamentos = window.carregarPlanejamentos;
+  window.logout = window.logout;
+  window.showPage = window.showPage;
+</script>
+</body>
+</html>

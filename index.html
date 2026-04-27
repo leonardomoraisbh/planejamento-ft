@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planejamento FT — Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .logo-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #1e3a5f, #2d6a9f);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .logo-icon i { color: #fff; font-size: 1.8rem; }
+    .btn-primary-custom {
+      background: #1e3a5f;
+      border: none;
+      border-radius: 8px;
+      padding: .75rem;
+      font-weight: 600;
+      letter-spacing: .5px;
+      transition: background .2s;
+    }
+    .btn-primary-custom:hover { background: #2d6a9f; }
+    .form-control:focus {
+      border-color: #1e3a5f;
+      box-shadow: 0 0 0 .2rem rgba(30,58,95,.2);
+    }
+    .alert { border-radius: 8px; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo-icon"><i class="bi bi-clipboard2-check"></i></div>
+    <h4 class="text-center fw-bold mb-1" style="color:#1e3a5f">Planejamento FT</h4>
+    <p class="text-center text-muted mb-4" style="font-size:.875rem">Acesse sua conta para continuar</p>
+
+    <div id="alertBox" class="alert alert-danger d-none" role="alert"></div>
+
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="color:#374151">E-mail</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" id="email" class="form-control border-start-0 ps-0"
+            placeholder="seu@email.com" required autocomplete="email" />
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="color:#374151">Senha</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+          <input type="password" id="senha" class="form-control border-start-0 ps-0"
+            placeholder="••••••••" required autocomplete="current-password" />
+          <button type="button" class="input-group-text bg-light" id="toggleSenha">
+            <i class="bi bi-eye text-muted" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary-custom btn-primary w-100 text-white" id="btnLogin">
+        <span id="btnText"><i class="bi bi-box-arrow-in-right me-2"></i>Entrar</span>
+        <span id="btnSpinner" class="d-none">
+          <span class="spinner-border spinner-border-sm me-2"></span>Entrando...
+        </span>
+      </button>
+    </form>
+
+    <p class="text-center text-muted mt-4 mb-0" style="font-size:.8rem">
+      Problemas de acesso? Contate o administrador.
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const supabase = createClient(
+      'https://eyocvshcppjhaccvubzp.supabase.co',
+      'sb_publishable_h4w2uJeHHSTUxqzBij97qQ_Md9dRdpB'
+    );
+
+    // Se ja esta logado, redireciona
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) window.location.href = 'app.html';
+
+    // Toggle senha
+    document.getElementById('toggleSenha').addEventListener('click', () => {
+      const input = document.getElementById('senha');
+      const icon = document.getElementById('eyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash text-muted';
+      } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye text-muted';
+      }
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alertBox');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const btnLogin = document.getElementById('btnLogin');
+
+      alertBox.classList.add('d-none');
+      btnText.classList.add('d-none');
+      btnSpinner.classList.remove('d-none');
+      btnLogin.disabled = true;
+
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+
+      if (error) {
+        alertBox.textContent = 'E-mail ou senha incorretos. Verifique e tente novamente.';
+        alertBox.classList.remove('d-none');
+        btnText.classList.remove('d-none');
+        btnSpinner.classList.add('d-none');
+        btnLogin.disabled = false;
+      } else {
+        window.location.href = 'app.html';
+      }
+    });
+  </script>
+</body>
+</html>
