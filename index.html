@@ -59,6 +59,7 @@
 
     <div id="alertBox" class="alert alert-danger d-none" role="alert"></div>
 
+    <!-- Formulário de Login -->
     <form id="loginForm">
       <div class="mb-3">
         <label class="form-label fw-semibold" style="color:#374151">E-mail</label>
@@ -68,7 +69,7 @@
             placeholder="seu@email.com" required autocomplete="email" />
         </div>
       </div>
-      <div class="mb-4">
+      <div class="mb-2">
         <label class="form-label fw-semibold" style="color:#374151">Senha</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
@@ -79,6 +80,11 @@
           </button>
         </div>
       </div>
+      <div class="text-end mb-4">
+        <a href="#" id="linkEsqueceuSenha" style="font-size:.82rem;color:#2d6a9f;text-decoration:none">
+          Esqueceu sua senha?
+        </a>
+      </div>
       <button type="submit" class="btn btn-primary-custom btn-primary w-100 text-white" id="btnLogin">
         <span id="btnText"><i class="bi bi-box-arrow-in-right me-2"></i>Entrar</span>
         <span id="btnSpinner" class="d-none">
@@ -87,7 +93,31 @@
       </button>
     </form>
 
-    <p class="text-center text-muted mt-4 mb-0" style="font-size:.8rem">
+    <!-- Formulário de Reset de Senha -->
+    <form id="resetForm" class="d-none">
+      <p class="text-muted mb-3" style="font-size:.85rem">
+        Informe seu e-mail e enviaremos um link para redefinir sua senha.
+      </p>
+      <div class="mb-4">
+        <label class="form-label fw-semibold" style="color:#374151">E-mail</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+          <input type="email" id="resetEmail" class="form-control border-start-0 ps-0"
+            placeholder="seu@email.com" required autocomplete="email" />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary-custom btn-primary w-100 text-white" id="btnReset">
+        <span id="btnResetText"><i class="bi bi-send me-2"></i>Enviar link de redefinição</span>
+        <span id="btnResetSpinner" class="d-none">
+          <span class="spinner-border spinner-border-sm me-2"></span>Enviando...
+        </span>
+      </button>
+      <button type="button" class="btn btn-link w-100 mt-2 text-muted" id="btnVoltarLogin" style="font-size:.85rem;text-decoration:none">
+        <i class="bi bi-arrow-left me-1"></i>Voltar ao login
+      </button>
+    </form>
+
+    <p class="text-center text-muted mt-4 mb-0" style="font-size:.8rem" id="msgAdmin">
       Problemas de acesso? Contate o administrador.
     </p>
   </div>
@@ -118,6 +148,24 @@
       }
     });
 
+    // Alternar entre login e reset
+    document.getElementById('linkEsqueceuSenha').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('loginForm').classList.add('d-none');
+      document.getElementById('resetForm').classList.remove('d-none');
+      document.querySelector('h4').textContent = 'Redefinir Senha';
+      document.querySelector('p.text-center.text-muted.mb-4').textContent = 'Informe seu e-mail cadastrado';
+      document.getElementById('alertBox').classList.add('d-none');
+    });
+
+    document.getElementById('btnVoltarLogin').addEventListener('click', () => {
+      document.getElementById('resetForm').classList.add('d-none');
+      document.getElementById('loginForm').classList.remove('d-none');
+      document.querySelector('h4').textContent = 'Planejamento FT';
+      document.querySelector('p.text-center.text-muted.mb-4').textContent = 'Acesse sua conta para continuar';
+      document.getElementById('alertBox').classList.add('d-none');
+    });
+
     // Login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -144,6 +192,38 @@
         btnLogin.disabled = false;
       } else {
         window.location.href = 'app.html';
+      }
+    });
+
+    // Reset de senha
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alertBox');
+      const btnResetText = document.getElementById('btnResetText');
+      const btnResetSpinner = document.getElementById('btnResetSpinner');
+      const btnReset = document.getElementById('btnReset');
+
+      alertBox.classList.add('d-none');
+      btnResetText.classList.add('d-none');
+      btnResetSpinner.classList.remove('d-none');
+      btnReset.disabled = true;
+
+      const email = document.getElementById('resetEmail').value.trim();
+      const redirectTo = window.location.origin + window.location.pathname.replace('index.html', '') + 'reset-password.html';
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+      btnResetText.classList.remove('d-none');
+      btnResetSpinner.classList.add('d-none');
+      btnReset.disabled = false;
+
+      if (error) {
+        alertBox.textContent = 'Erro ao enviar e-mail: ' + error.message;
+        alertBox.classList.remove('d-none');
+      } else {
+        alertBox.className = 'alert alert-success';
+        alertBox.innerHTML = '<i class="bi bi-check-circle me-2"></i>Link enviado! Verifique sua caixa de entrada.';
+        alertBox.classList.remove('d-none');
       }
     });
   </script>
