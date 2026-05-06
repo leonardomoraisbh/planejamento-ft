@@ -149,11 +149,16 @@
     </button>
 
     <div class="nav-section-title">Planejamento</div>
-    <button class="nav-item-link" onclick="showPage('criar-planejamento')">
+    <button class="nav-item-link" id="navCriarPlanejamento" onclick="showPage('criar-planejamento')">
       <i class="bi bi-file-earmark-arrow-up"></i><span>Criar Planejamento</span>
     </button>
     <button class="nav-item-link" onclick="showPage('listar-planejamento')">
       <i class="bi bi-table"></i><span>Ver Planejamentos</span>
+    </button>
+
+    <div class="nav-section-title d-none" id="navAdminSection">Administração</div>
+    <button class="nav-item-link d-none" id="navGerenciarUsuarios" onclick="showPage('gerenciar-usuarios')">
+      <i class="bi bi-people"></i><span>Gerenciar Usuários</span>
     </button>
   </div>
 
@@ -311,6 +316,30 @@
       </div>
     </div>
 
+    <!-- GERENCIAR USUÁRIOS -->
+    <div id="page-gerenciar-usuarios" class="page-section">
+      <div class="stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+          <h6 class="fw-bold mb-0" style="color:#1e3a5f"><i class="bi bi-people me-2"></i>Usuários do Sistema</h6>
+          <button class="btn btn-sm text-white" style="background:#1e3a5f;border-radius:8px" data-bs-toggle="modal" data-bs-target="#modalNovoUsuario">
+            <i class="bi bi-person-plus me-1"></i>Novo Usuário
+          </button>
+        </div>
+        <div class="preview-table-wrapper">
+          <table class="table table-sm preview-table mb-0" id="tabelaUsuarios">
+            <thead>
+              <tr>
+                <th>Nome</th><th>Chapa</th><th>E-mail</th><th>Perfil</th><th>Obras</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyUsuarios">
+              <tr><td colspan="6" class="text-center text-muted py-4">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- VER PLANEJAMENTOS -->
     <div id="page-listar-planejamento" class="page-section">
       <div class="stat-card">
@@ -342,6 +371,90 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal Novo Usuário -->
+<div class="modal fade" id="modalNovoUsuario" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:none">
+      <div class="modal-header" style="background:#1e3a5f;border-radius:16px 16px 0 0">
+        <h6 class="modal-title text-white fw-bold"><i class="bi bi-person-plus me-2"></i>Novo Usuário</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="modalAlert" class="alert d-none mb-3" role="alert"></div>
+        <form id="formNovoUsuario">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Nome completo</label>
+              <input type="text" id="newNome" class="form-control" placeholder="João da Silva" required />
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Chapa</label>
+              <input type="text" id="newChapa" class="form-control" placeholder="12345" required />
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Perfil</label>
+              <select id="newRole" class="form-select" required>
+                <option value="leitura">Leitura</option>
+                <option value="escrita">Escrita</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">E-mail</label>
+              <input type="email" id="newEmail" class="form-control" placeholder="usuario@empresa.com" required />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Senha temporária</label>
+              <input type="password" id="newSenha" class="form-control" placeholder="Mínimo 6 caracteres" required minlength="6" />
+              <small class="text-muted" style="font-size:.75rem">O usuário poderá redefinir via "Esqueci minha senha".</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Obras (separadas por vírgula)</label>
+              <input type="text" id="newObras" class="form-control" placeholder="345.000, 346.000, 347.000" />
+              <small class="text-muted" style="font-size:.75rem">Deixe vazio para não vincular obras agora.</small>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid #f1f5f9">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm text-white" id="btnCriarUsuario" style="background:#1e3a5f;border-radius:8px" onclick="criarUsuario()">
+          <span id="btnCriarText"><i class="bi bi-check-circle me-1"></i>Criar Usuário</span>
+          <span id="btnCriarSpinner" class="d-none"><span class="spinner-border spinner-border-sm me-1"></span>Criando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Perfil -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content" style="border-radius:16px;border:none">
+      <div class="modal-header" style="background:#1e3a5f;border-radius:16px 16px 0 0">
+        <h6 class="modal-title text-white fw-bold"><i class="bi bi-pencil me-2"></i>Editar Perfil</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="editUserId" />
+        <div id="editAlert" class="alert d-none mb-3"></div>
+        <label class="form-label fw-semibold" style="color:#374151;font-size:.875rem">Perfil de acesso</label>
+        <select id="editRole" class="form-select">
+          <option value="leitura">Leitura</option>
+          <option value="escrita">Escrita</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid #f1f5f9">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm text-white" style="background:#1e3a5f;border-radius:8px" onclick="salvarEdicaoUsuario()">
+          <i class="bi bi-check-circle me-1"></i>Salvar
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -406,6 +519,19 @@
       userProfile = data;
       document.getElementById('sidebarNome').textContent = data.nome;
       document.getElementById('sidebarChapa').textContent = 'Chapa: ' + data.chapa;
+      aplicarPermissoes(data.role);
+    }
+  }
+
+  function aplicarPermissoes(role) {
+    if (role === 'admin') {
+      document.getElementById('navAdminSection').classList.remove('d-none');
+      document.getElementById('navGerenciarUsuarios').classList.remove('d-none');
+    }
+    if (role === 'leitura') {
+      document.getElementById('navCriarPlanejamento').classList.add('d-none');
+      document.getElementById('btnImportar').disabled = true;
+      document.getElementById('btnImportar').title = 'Sem permissão para importar dados';
     }
   }
 
@@ -458,11 +584,13 @@
     const titles = {
       'dashboard': '<i class="bi bi-grid-1x2 me-2"></i>Dashboard',
       'criar-planejamento': '<i class="bi bi-file-earmark-arrow-up me-2"></i>Criar Planejamento',
-      'listar-planejamento': '<i class="bi bi-table me-2"></i>Ver Planejamentos'
+      'listar-planejamento': '<i class="bi bi-table me-2"></i>Ver Planejamentos',
+      'gerenciar-usuarios': '<i class="bi bi-people me-2"></i>Gerenciar Usuários'
     };
     document.getElementById('topbarTitle').innerHTML = titles[page] || page;
 
     if (page === 'listar-planejamento') carregarPlanejamentos();
+    if (page === 'gerenciar-usuarios') carregarUsuarios();
   };
 
   // ── Logout ─────────────────────────────────────────────────
@@ -740,6 +868,161 @@
     `).join('');
   };
 
+  // ── Gerenciar Usuários ─────────────────────────────────────
+  async function carregarUsuarios() {
+    const tbody = document.getElementById('tbodyUsuarios');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Carregando...</td></tr>';
+
+    const { data: usuarios, error } = await supabase
+      .from('usuarios')
+      .select('id, nome, chapa, role')
+      .order('nome');
+
+    if (error || !usuarios) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Erro ao carregar usuários.</td></tr>';
+      return;
+    }
+
+    const { data: obrasData } = await supabase
+      .from('usuario_obra')
+      .select('id_usuario, obra');
+
+    const obrasPorUsuario = {};
+    (obrasData || []).forEach(r => {
+      if (!obrasPorUsuario[r.id_usuario]) obrasPorUsuario[r.id_usuario] = [];
+      obrasPorUsuario[r.id_usuario].push(r.obra);
+    });
+
+    const badgeRole = { admin: 'danger', escrita: 'warning', leitura: 'secondary' };
+    const labelRole = { admin: 'Admin', escrita: 'Escrita', leitura: 'Leitura' };
+
+    tbody.innerHTML = usuarios.map(u => {
+      const obras = (obrasPorUsuario[u.id] || []).map(o =>
+        `<span class="badge rounded-pill me-1" style="background:#1e3a5f;font-size:.65rem">${o}</span>`
+      ).join('') || '<span class="text-muted" style="font-size:.75rem">Nenhuma</span>';
+
+      const isMe = u.id === currentUser.id;
+
+      return `<tr>
+        <td class="fw-semibold">${u.nome ?? '—'}</td>
+        <td>${u.chapa ?? '—'}</td>
+        <td style="font-size:.8rem">${u.id}</td>
+        <td><span class="badge bg-${badgeRole[u.role] || 'secondary'}">${labelRole[u.role] || u.role}</span></td>
+        <td>${obras}</td>
+        <td>
+          ${isMe ? '<span class="text-muted" style="font-size:.75rem">Você</span>' : `
+          <button class="btn btn-sm btn-outline-primary py-0" style="font-size:.75rem" onclick="abrirEdicaoUsuario('${u.id}','${u.role}')">
+            <i class="bi bi-pencil"></i>
+          </button>`}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.abrirEdicaoUsuario = function(id, role) {
+    document.getElementById('editUserId').value = id;
+    document.getElementById('editRole').value = role;
+    document.getElementById('editAlert').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+  };
+
+  window.salvarEdicaoUsuario = async function() {
+    const id = document.getElementById('editUserId').value;
+    const role = document.getElementById('editRole').value;
+    const alertEl = document.getElementById('editAlert');
+
+    const { error } = await supabase.from('usuarios').update({ role }).eq('id', id);
+
+    if (error) {
+      alertEl.className = 'alert alert-danger';
+      alertEl.textContent = 'Erro: ' + error.message;
+      alertEl.classList.remove('d-none');
+    } else {
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
+      showToast('Perfil atualizado com sucesso!', 'success');
+      carregarUsuarios();
+    }
+  };
+
+  window.criarUsuario = async function() {
+    const nome   = document.getElementById('newNome').value.trim();
+    const chapa  = document.getElementById('newChapa').value.trim();
+    const role   = document.getElementById('newRole').value;
+    const email  = document.getElementById('newEmail').value.trim();
+    const senha  = document.getElementById('newSenha').value;
+    const obras  = document.getElementById('newObras').value
+      .split(',').map(o => o.trim()).filter(Boolean);
+
+    const alertEl = document.getElementById('modalAlert');
+    const btnText = document.getElementById('btnCriarText');
+    const btnSpinner = document.getElementById('btnCriarSpinner');
+    const btn = document.getElementById('btnCriarUsuario');
+
+    if (!nome || !chapa || !email || !senha) {
+      alertEl.className = 'alert alert-danger';
+      alertEl.textContent = 'Preencha todos os campos obrigatórios.';
+      alertEl.classList.remove('d-none');
+      return;
+    }
+
+    alertEl.classList.add('d-none');
+    btnText.classList.add('d-none');
+    btnSpinner.classList.remove('d-none');
+    btn.disabled = true;
+
+    try {
+      // Salvar sessão do admin
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+      // Criar usuário no Supabase Auth
+      const { data: newUserData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password: senha,
+        options: { emailRedirectTo: window.location.origin + '/reset-password.html' }
+      });
+
+      if (signUpError) throw signUpError;
+
+      const newUserId = newUserData?.user?.id;
+      if (!newUserId) throw new Error('ID do usuário não retornado pelo Supabase.');
+
+      // Restaurar sessão do admin
+      await supabase.auth.setSession({
+        access_token: adminSession.access_token,
+        refresh_token: adminSession.refresh_token
+      });
+
+      // Inserir perfil
+      const { error: profileError } = await supabase
+        .from('usuarios')
+        .insert({ id: newUserId, nome, chapa, role });
+
+      if (profileError) throw profileError;
+
+      // Inserir obras
+      if (obras.length > 0) {
+        const { error: obraError } = await supabase
+          .from('usuario_obra')
+          .insert(obras.map(obra => ({ id_usuario: newUserId, obra })));
+        if (obraError) throw obraError;
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('modalNovoUsuario')).hide();
+      document.getElementById('formNovoUsuario').reset();
+      showToast(`Usuário ${nome} criado com sucesso!`, 'success');
+      carregarUsuarios();
+
+    } catch (err) {
+      alertEl.className = 'alert alert-danger';
+      alertEl.textContent = 'Erro: ' + err.message;
+      alertEl.classList.remove('d-none');
+    } finally {
+      btnText.classList.remove('d-none');
+      btnSpinner.classList.add('d-none');
+      btn.disabled = false;
+    }
+  };
+
   // ── Toast ──────────────────────────────────────────────────
   function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
@@ -756,6 +1039,9 @@
   window.carregarPlanejamentos = window.carregarPlanejamentos;
   window.logout = window.logout;
   window.showPage = window.showPage;
+  window.criarUsuario = window.criarUsuario;
+  window.abrirEdicaoUsuario = window.abrirEdicaoUsuario;
+  window.salvarEdicaoUsuario = window.salvarEdicaoUsuario;
 </script>
 </body>
 </html>
